@@ -31,6 +31,8 @@ function insertNewUser(req, res){
                 if(error) {
                     throw error;
                 } else{
+                    // 201 created
+                    res.status(201);
                    return res.json({
                             "message" : "Record Inserted Successfully !"
                 });
@@ -57,6 +59,13 @@ function checkUser(req, res){
     if(error){
         throw error;
     } else{
+        if(pass === undefined){
+            res.status(404);
+            res.json({
+                "error" : true,
+                "message" : "User Not Found !"
+            });
+        }
         if(String(pass) === enteredPass){
             res.status(200);
             res.json({
