@@ -4,17 +4,19 @@ const bodyParser = require('body-parser');
 const app = express();
 const userService = require('./services/user_service');
 
+const emailConfig = require('./config');
 
 
 const multer = require('multer');
-
+var file; var to;
 const myStorage = multer.diskStorage({
     destination : function(req, file, cb){
         cb(null, './uploads')
     },
     filename: function(req, file, cb){
         let name = Date.now() + '-' + file.originalname;
-        cb(null, file.fieldname+'-'+name);
+        file = name;
+        cb(null,file);
     }
 });
 
@@ -57,8 +59,34 @@ app.post('/user/login', (req, res) =>{
        }
 });
 
+
 app.post('/user/attachment', upload.single('file'), (req, res) =>{
-   res.json({
+    
+    res.json({
     "message" : "File Uploaded"
    });
+
 });
+
+app.post('/user/attachment/send', (req, res)=>{
+    to = req.body.email_to;
+    emailConfig.transporter.sendMail(emailConfig.mailOptions, function(error, result){
+        if(error){
+            res.status(500);
+            return res.json({
+                "error" : true,
+                "message" : error.message
+            });
+        } else{
+            console.log('Email Sent: '+result.response);
+            res.status(200);
+            res.json({
+               "message" : "Mail Sent Successfully"
+            })
+        }
+    });
+});
+
+module.exports = {
+    file, to
+}
