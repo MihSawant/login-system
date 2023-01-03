@@ -4,6 +4,22 @@ const bodyParser = require('body-parser');
 const app = express();
 const userService = require('./services/user_service');
 
+
+
+const multer = require('multer');
+
+const myStorage = multer.diskStorage({
+    destination : function(req, file, cb){
+        cb(null, './uploads')
+    },
+    filename: function(req, file, cb){
+        let name = Date.now() + '-' + file.originalname;
+        cb(null, file.fieldname+'-'+name);
+    }
+});
+
+const upload = multer({storage : myStorage});
+
 app.listen(PORT, ()=>{
     console.log(`server listening on port: ${PORT}`);
 });
@@ -39,4 +55,10 @@ app.post('/user/login', (req, res) =>{
                 "message" : e.message
             })
        }
+});
+
+app.post('/user/attachment', upload.single('file'), (req, res) =>{
+   res.json({
+    "message" : "File Uploaded"
+   });
 });
