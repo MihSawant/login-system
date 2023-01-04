@@ -5,18 +5,19 @@ const app = express();
 const userService = require('./services/user_service');
 
 const emailConfig = require('./config');
+const nodeMailer = require('nodemailer');
 
 
 const multer = require('multer');
-var file; var to;
+var fileName;
 const myStorage = multer.diskStorage({
     destination : function(req, file, cb){
         cb(null, './uploads')
     },
     filename: function(req, file, cb){
         let name = Date.now() + '-' + file.originalname;
-        file = name;
-        cb(null,file);
+        fileName = name;
+        cb(null,fileName);
     }
 });
 
@@ -68,9 +69,33 @@ app.post('/user/attachment', upload.single('file'), (req, res) =>{
 
 });
 
+// Mailer
+var transporter = nodeMailer.createTransport({
+    service : 'gmail',
+    secure: true,
+    auth : {
+        
+        user : "", // desired email goes here
+        pass : "" // password goes here
+    },
+    attachments: [
+        {
+            filename: 'Imp_File',
+            content: './uploads/'+fileName
+        }
+    ]
+});
+
+
 app.post('/user/attachment/send', (req, res)=>{
-    to = req.body.email_to;
-    emailConfig.transporter.sendMail(emailConfig.mailOptions, function(error, result){
+
+    var mailOptions = {
+        from: '', // from as described
+        to : req.body.email_to, // to goes here which comes from user
+        subject: 'This is sample pdf doc Test'
+    }
+    
+    transporter.sendMail(mailOptions, function(error, result){
         if(error){
             res.status(500);
             return res.json({
@@ -86,7 +111,3 @@ app.post('/user/attachment/send', (req, res)=>{
         }
     });
 });
-
-module.exports = {
-    file, to
-}
