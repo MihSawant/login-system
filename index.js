@@ -24,6 +24,7 @@ async function getip() {
         }
        
     }
+    console.log( "Use this ip address "+ results["en0"][0]+":"+PORT);
     
 };
 
@@ -89,9 +90,10 @@ app.post('/user/login', (req, res) =>{
 
 
 app.post('/user/attachment', upload.single('file'), (req, res) =>{
+    fileName  = req.file.filename;
     
     res.json({
-    "message" : "File Uploaded"
+    "message" : req.file.filename
    });
 
 });
@@ -102,14 +104,10 @@ var transporter = nodeMailer.createTransport({
     auth : {
         
         user : config.emailId, // desired email goes here
-        pass : config.password // password goes here
+        pass : config.pass // password goes here
+        //its pass not password
     },
-    attachments: [
-        {
-            filename: 'Imp_File',
-            content: './uploads/'+fileName
-        }
-    ]
+   
 });
 
 
@@ -119,7 +117,13 @@ app.post('/user/attachment/send', (req, res)=>{
         from: config.emailId, // from as described
         to : req.body.email_to, // to goes here which comes from user
         subject: req.body.subject,
-        body : req.body.email_body
+        html : req.body.email_body,
+        attachments: [
+            {
+                filename: req.body.file_name,
+                path: './uploads/'+req.body.file_name
+            }
+        ]
     }
 
     // before sending mail just checking the data
