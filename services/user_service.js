@@ -1,15 +1,30 @@
-const Joi = require('joi');
 const db = require('../db/database_connection');
 
 function insertNewUser(req, res){
     let user_email = String(req.body.email);
     let password = String(req.body.password);
     
-  
-        
- 
+    if(user_email === "undefined"){
+        res.status(400);
+        res.json({
+            "error" : true,
+            "message" : "Email is Required Field"
+        });
+    } else if(password === "undefined"){
+        res.status(400);
+        res.json({
+            "error" : true,
+            "message" : "Password is Required Field"
+        });
+    } else if(password === "undefined" && user_email  === "undefined"){
+        res.status(400);
+        res.json({
+            "error" : true,
+            "message" : "Email and Password is Required"
+        });
+    } else{
 
-               // check does user already exists
+                 // check does user already exists
     let userCheck = `SELECT COUNT(email) AS user_count FROM users WHERE email = '${user_email}'`;
 
     db.myConnection.query(userCheck, (error, result) =>{
@@ -42,6 +57,10 @@ function insertNewUser(req, res){
             });
         }
     });
+    }
+        
+ 
+
 
 
 }
