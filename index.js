@@ -3,11 +3,34 @@ const PORT = 8000;
 const bodyParser = require('body-parser');
 const app = express();
 const userService = require('./services/user_service');
+const { networkInterfaces } = require('os');
+const nets = networkInterfaces();
+const results = Object.create(null);
+
+
+async function getip() {
+    console.log("called");
+    for (const name of Object.keys(nets)) {
+        for (const net of nets[name]) {
+            // Skip over non-IPv4 and internal (i.e. 127.0.0.1) addresses
+            // 'IPv4' is in Node <= 17, from 18 it's a number 4 or 6
+            const familyV4Value = typeof net.family === 'string' ? 'IPv4' : 4
+            if (net.family === familyV4Value && !net.internal) {
+                if (!results[name]) {
+                    results[name] = [];
+                }
+                results[name].push(net.address);
+            }
+        }
+       
+    }
+    
+};
+
 
 const emailConfig = require('./config');
 const nodeMailer = require('nodemailer');
-
-const expressPublicIp = require('express-public-ip');
+const config = require('./config');
 
 const multer = require('multer');
 var fileName;
@@ -25,6 +48,7 @@ const myStorage = multer.diskStorage({
 const upload = multer({storage : myStorage});
 
 
+getip();
 
 app.listen(PORT, '0.0.0.0', ()=>{
     console.log(`server listening on port: ${PORT}`);
@@ -75,11 +99,10 @@ app.post('/user/attachment', upload.single('file'), (req, res) =>{
 // Mailer
 var transporter = nodeMailer.createTransport({
     service : 'gmail',
-    secure: true,
     auth : {
         
-        user : "", // desired email goes here
-        pass : "" // password goes here
+        user : config.emailId, // desired email goes here
+        pass : config.password // password goes here
     },
     attachments: [
         {
@@ -93,10 +116,16 @@ var transporter = nodeMailer.createTransport({
 app.post('/user/attachment/send', (req, res)=>{
 
     var mailOptions = {
-        from: '', // from as described
+        from: config.emailId, // from as described
         to : req.body.email_to, // to goes here which comes from user
-        subject: 'This is sample pdf doc Test'
+        subject: req.body.subject,
+        body : req.body.email_body
     }
+
+    // before sending mail just checking the data
+    console.log(req.body.email_to);
+    console.log(req.body.email_body);
+    console.log(req.body.subject);
     
     transporter.sendMail(mailOptions, function(error, result){
         if(error){

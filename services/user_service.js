@@ -75,28 +75,38 @@ function checkUser(req, res){
     var first = Object.values(result)[0];
     var pass = Object.values(first)[0];
 
-    if(error){
-        throw error;
-    } else{
-        if(pass === undefined){
-            res.status(404);
-            res.json({
-                "error" : true,
-                "message" : "User Not Found !"
-            });
-        }
-        if(String(pass) === enteredPass){
-            res.status(200);
-            res.json({
-                "message" : "Password Match Success"
-            });
+    if(result > 0){
+
+        if(error){
+            throw error;
         } else{
-            res.status(400);
-            res.json({
-                "error" : true,
-                "message" : "Password Match Fail"
-            });
+            if(pass === undefined){
+                res.status(404);
+                res.json({
+                    "error" : true,
+                    "message" : "User Not Found !"
+                });
+            }
+            if(String(pass) === enteredPass){
+                res.status(200);
+                res.json({
+                    "message" : "Password Match Success"
+                });
+            } else{
+                res.status(400);
+                res.json({
+                    "error" : true,
+                    "message" : "Password Match Fail"
+                });
+            }
         }
+
+    } else{
+        res.status(404);
+        res.json({
+            "error" : true,
+            "message" : "User Does not Exists !"
+        });
     }
    });
 }
