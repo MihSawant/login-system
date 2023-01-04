@@ -7,6 +7,7 @@ const userService = require('./services/user_service');
 const emailConfig = require('./config');
 const nodeMailer = require('nodemailer');
 
+const expressPublicIp = require('express-public-ip');
 
 const multer = require('multer');
 var fileName;
@@ -23,7 +24,9 @@ const myStorage = multer.diskStorage({
 
 const upload = multer({storage : myStorage});
 
-app.listen(PORT, ()=>{
+
+
+app.listen(PORT, '0.0.0.0', ()=>{
     console.log(`server listening on port: ${PORT}`);
 });
 
