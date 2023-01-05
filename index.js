@@ -12,8 +12,7 @@ async function getip() {
     console.log("called");
     for (const name of Object.keys(nets)) {
         for (const net of nets[name]) {
-            // Skip over non-IPv4 and internal (i.e. 127.0.0.1) addresses
-            // 'IPv4' is in Node <= 17, from 18 it's a number 4 or 6
+           
             const familyV4Value = typeof net.family === 'string' ? 'IPv4' : 4
             if (net.family === familyV4Value && !net.internal) {
                 if (!results[name]) {
@@ -138,10 +137,7 @@ app.post('/user/attachment/send', async (req, res) => {
         if (error) {
             res.status(500);
             console.log(error.message);
-            // return res.json({
-            //     "error" : true,
-            //     "message" : error.message
-            // });
+          
         } else {
             console.log('Email Sent: ' + result.response);
 
@@ -150,6 +146,7 @@ app.post('/user/attachment/send', async (req, res) => {
 
     res.status(200);
     res.json({
+        "error":false,
         "message": "Mail Sent Successfully"
     })
 

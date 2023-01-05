@@ -72,10 +72,11 @@ function checkUser(req, res){
     let enteredPass = String(req.body.password);
    
    db.myConnection.query(user, (error, result)=>{
-    var first = Object.values(result)[0];
-    var pass = Object.values(first)[0];
-
-    if(result > 0){
+   
+      
+    if(result.length > 0){
+        var first = Object.values(result)[0];
+        var pass = Object.values(first)[0];
 
         if(error){
             throw error;
