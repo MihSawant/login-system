@@ -22,10 +22,10 @@ async function getip() {
                 results[name].push(net.address);
             }
         }
-       
+
     }
-    console.log( "Use this ip address "+ results["en0"][0]+":"+PORT);
-    
+    console.log("Use this ip address " + results["en0"][0] + ":" + PORT);
+
 };
 
 
@@ -36,92 +36,96 @@ const config = require('./config');
 const multer = require('multer');
 var fileName;
 const myStorage = multer.diskStorage({
-    destination : function(req, file, cb){
+    destination: function (req, file, cb) {
         cb(null, './uploads')
     },
-    filename: function(req, file, cb){
+    filename: function (req, file, cb) {
         let name = Date.now() + '-' + file.originalname;
         fileName = name;
-        cb(null,fileName);
+        cb(null, fileName);
     }
 });
 
-const upload = multer({storage : myStorage});
+const upload = multer({ storage: myStorage });
 
 
 getip();
 
-app.listen(PORT, '0.0.0.0', ()=>{
+app.listen(PORT, '0.0.0.0', () => {
     console.log(`server listening on port: ${PORT}`);
 });
 
 app.use(bodyParser.json());
-app.get('/', (req, res) =>{
+app.get('/', (req, res) => {
     var date = new Date();
-    var timeStamp = date.getDate() + '/'+ date.getMonth() + 1 + '/' + date.getFullYear() + '/';
+    var timeStamp = date.getDate() + '/' + date.getMonth() + 1 + '/' + date.getFullYear() + '/';
     res.status(200);
     res.json({
-        "message" : "Hello "+timeStamp
+        "message": "Hello " + timeStamp
     });
 });
 
 
-app.post('/user/signup', (req, res) =>{
-   try{
-    userService.insertNewUser(req, res);
-   }catch(e){
+app.post('/user/signup', (req, res) => {
+    try {
+        userService.insertNewUser(req, res);
+    } catch (e) {
         res.json({
-            "error" : true,
-            "message" : e.message
+            "error": true,
+            "message": e.message
         })
-   }
+    }
 });
 
-app.post('/user/login', (req, res) =>{
-    try{
+app.post('/user/login', (req, res) => {
+    try {
         userService.checkUser(req, res);
-       }catch(e){
-            res.json({
-                "error" : true,
-                "message" : e.message
-            })
-       }
+    } catch (e) {
+        res.json({
+            "error": true,
+            "message": e.message
+        })
+    }
 });
 
 
-app.post('/user/attachment', upload.single('file'), (req, res) =>{
-    fileName  = req.file.filename;
-    
+app.post('/user/attachment', upload.single('file'), (req, res) => {
+    fileName = req.file.filename;
+
     res.json({
-    "message" : req.file.filename
-   });
+        "message": req.file.filename
+    });
 
 });
 
 // Mailer
 var transporter = nodeMailer.createTransport({
-    service : 'gmail',
-    auth : {
-        
-        user : config.emailId, // desired email goes here
-        pass : config.pass // password goes here
+    service: 'gmail',
+    secure: false,
+    requireTLS: true,
+    logger: true,
+    debug: true,
+    auth: {
+
+        user: config.emailId, // desired email goes here
+        pass: config.pass // password goes here
         //its pass not password
     },
-   
+
 });
 
 
-app.post('/user/attachment/send', (req, res)=>{
+app.post('/user/attachment/send', async (req, res) => {
 
     var mailOptions = {
         from: config.emailId, // from as described
-        to : req.body.email_to, // to goes here which comes from user
+        to: req.body.email_to, // to goes here which comes from user
         subject: req.body.subject,
-        html : req.body.email_body,
+        html: req.body.email_body,
         attachments: [
             {
                 filename: req.body.file_name,
-                path: './uploads/'+req.body.file_name
+                path: './uploads/' + req.body.file_name
             }
         ]
     }
@@ -130,20 +134,23 @@ app.post('/user/attachment/send', (req, res)=>{
     console.log(req.body.email_to);
     console.log(req.body.email_body);
     console.log(req.body.subject);
-    
-    transporter.sendMail(mailOptions, function(error, result){
-        if(error){
+    await transporter.sendMail(mailOptions, function (error, result) {
+        if (error) {
             res.status(500);
-            return res.json({
-                "error" : true,
-                "message" : error.message
-            });
-        } else{
-            console.log('Email Sent: '+result.response);
-            res.status(200);
-            res.json({
-               "message" : "Mail Sent Successfully"
-            })
+            console.log(error.message);
+            // return res.json({
+            //     "error" : true,
+            //     "message" : error.message
+            // });
+        } else {
+            console.log('Email Sent: ' + result.response);
+
         }
     });
+
+    res.status(200);
+    res.json({
+        "message": "Mail Sent Successfully"
+    })
+
 });
